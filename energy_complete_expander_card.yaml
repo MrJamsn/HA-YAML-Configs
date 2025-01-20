@@ -1,0 +1,98 @@
+type: custom:expander-card
+gap: 0.6em
+padding: 1em
+clear: false
+title: Strompreis
+overlay-margin: 2em
+child-padding: 0.5em
+button-background: transparent
+cards:
+  - type: vertical-stack
+    cards:
+      - type: custom:apexcharts-card
+        experimental:
+          color_threshold: true
+        graph_span: 24h
+        header:
+          title: Energy price today (ct/kWh)
+          show: true
+          show_states: true
+        span:
+          start: day
+        now:
+          show: true
+          label: now
+        series:
+          - entity: sensor.epex_spot_data_price
+            type: column
+            extend_to: end
+            unit: ct/kWh
+            float_precision: 3
+            show:
+              in_header: before_now
+              header_color_threshold: true
+            color_threshold:
+              - value: -100
+                color: green
+              - value: 8
+                color: yellowgreen
+              - value: 11
+                color: gold
+              - value: 15
+                color: orange
+              - value: 19
+                color: red
+            data_generator: |
+              return entity.attributes.data.map((entry) => {
+                return [new Date(entry.start_time), (entry.price_ct_per_kwh+1.2)*1.2];
+              });
+      - type: conditional
+        conditions:
+          - entity: sensor.display_card
+            state: "True"
+        card:
+          type: custom:apexcharts-card
+          graph_span: 24h
+          header:
+            title: Energy price tomorrow
+            show: true
+            show_states: false
+          span:
+            start: day
+            offset: +1day
+          series:
+            - entity: sensor.epex_spot_data_price
+              type: column
+              extend_to: end
+              unit: ct/kWh
+              float_precision: 3
+              yaxis_id: preis
+              group_by:
+                func: avg
+                duration: 1h
+              color: grey
+              show:
+                in_header: before_now
+                extremas: true
+              data_generator: |
+                return entity.attributes.data.map((entry) => {
+                  return [new Date(entry.start_time), (entry.price_ct_per_kwh+1.2)*1.2];
+                });
+          yaxis:
+            - id: preis
+              decimals: 0
+              apex_config:
+                title:
+                  text: ct/kWh
+                tickAmount: 5
+          apex_config:
+            legend:
+              show: false
+            tooltip:
+              x:
+                show: true
+                format: HH:00 - HH:59
+title-card:
+  type: tile
+  entity: sensor.current_electricity_price
+title-card-button-overlay: true
