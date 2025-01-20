@@ -1,0 +1,41 @@
+type: custom:apexcharts-card
+graph_span: 24h
+header:
+  title: Energy price tomorrow
+  show: true
+  show_states: false
+span:
+  start: day
+  offset: +1day
+series:
+  - entity: sensor.epex_spot_data_price
+    type: column
+    extend_to: end
+    unit: ct/kWh
+    float_precision: 3
+    yaxis_id: preis
+    group_by:
+      func: avg
+      duration: 1h
+    color: grey
+    show:
+      in_header: before_now
+      extremas: true
+    data_generator: |
+      return entity.attributes.data.map((entry) => {
+        return [new Date(entry.start_time), (entry.price_ct_per_kwh+1.2)*1.2];
+      });
+yaxis:
+  - id: preis
+    decimals: 0
+    apex_config:
+      title:
+        text: ct/kWh
+      tickAmount: 5
+apex_config:
+  legend:
+    show: false
+  tooltip:
+    x:
+      show: true
+      format: HH:00 - HH:59
